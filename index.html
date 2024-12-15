@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wasm test</title>
+  </head>
+
+  <body>
+    <input onchange="calc_frontend()" id="calc">
+    <script>
+      var memory;
+      const importObject = {
+        web: {
+       },
+      };
+
+      var eval_custom;
+      const calc = document.getElementById("calc");
+      function calc_frontend() {
+        alert(eval_custom(calc.value))
+      }
+
+      WebAssembly.instantiateStreaming(
+        fetch("calc.wasm"),
+        importObject
+      ).then((result) => {
+        xports = result.instance.exports;
+        memory = xports.memory;
+
+                  eval_custom = (code) => {
+
+        const ptr = xports.alloc(code.length); // the string
+         const slice = new Uint8Array(memory.buffer, ptr, code.length);
+        slice.set(new TextEncoder().encode(code));
+
+          return (xports.evaluate(ptr, code.length));
+ }
+
+
+      });
+    </script>
+  </body>
+</html>
